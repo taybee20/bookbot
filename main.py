@@ -1,39 +1,61 @@
-def main():
-    book_path = "books/frankenstein.txt"
-    text = get_book_text(book_path)
-    word_count = wordcount(text)
-    char_list = character_count(text)
+import tkinter as tk
+from tkinter import filedialog, messagebox, Text
+import os
 
-    char_list.sort(reverse=True, key=sort_on)
+# GUI Class
+class TextAnalyzerApp:
+    def __init__(self, root):
+        # Makes main window available everywhere in class
+        self.root = root
+        self.root.title("Bookbot")
 
-    # Displaying report
-    print(f"--- Begin report of {book_path} ---\n")
-    print(f"\t{word_count} words found in the document\n")
-    for char in char_list:
-        c = char["name"]
-        count = char["count"]
-        print(f"The '{c}' character was found {count} times")
+        # Create a file upload button 
+        self.upload_button = tk.Button(root, text="Upload Text File", padx=20, pady=10, command=self.upload_files)
+        # Places button on screen
+        self.upload_button.pack()
 
+        
+        # Text widget to display analysis results
+        self.result_text = tk.Text(root, height=30, width=100)
+        self.result_text.pack()
 
+    def upload_files(self):
+        """Handles the file upload."""
+        file_path = filedialog.askopenfilename(filetypes=[("Text Files", "*.txt")])
 
-# A function that takes a dictionary and returns the value of the "count" key
-# This is how the `.sort()` method knows how to sort the list of dictionaries
+        if file_path:
+            self.analyze_text(file_path)
+
+    def analyze_text(self, file_path):
+        """Reads, analyzes, and displays the results of the text file."""
+        text = get_book_text(file_path)
+        word_count = wordcount(text)
+        char_list = character_count(text)
+
+        char_list.sort(reverse=True, key=sort_on)
+
+        # Displaying report
+        self.result_text.delete("1.0", tk.END)  # Clear any previous analysis
+        self.result_text.insert(tk.END, f"--- Begin report of {file_path} ---\n\n")
+        self.result_text.insert(tk.END, f"{word_count} words found in the document\n\n")
+
+        for char in char_list:
+            c = char["name"]
+            count = char["count"]
+            self.result_text.insert(tk.END, f"The '{c}' character was found {count} times\n")
+
+# Analysis functions 
 def sort_on(dict):
     return dict["count"]
 
-# Takes text string (a book) and returns the number of words in string
 def wordcount(book):
     words = book.split()
-
     return len(words)
 
-
 def get_book_text(path):
-     # open a file: 
     with open(path) as f:
         return f.read()
 
-# Takes text string (a book) and returns the number of times each character appears in the string 
 def character_count(book):
     characters = {}
     
@@ -46,9 +68,10 @@ def character_count(book):
             else:
                 characters[char] = 1
 
-    # Convert list of dictionaries 
     char_list = [{"name": k, "count": v} for k, v in characters.items()]
     return char_list
 
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    app = TextAnalyzerApp(root)
+    root.mainloop()
